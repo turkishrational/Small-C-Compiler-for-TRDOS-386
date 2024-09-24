@@ -22,6 +22,7 @@ Major difference from other SCC adaptations/ports:
    (But this is not a subject for SCC here.)
 
 Compiling:  fasm scc.asm SCC.PRG  (in Windows or Linux)
+
     (FASM, flat assembler is used to assemble SCC source code.)
 
 Using compiler: scc <cfile>
