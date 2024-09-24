@@ -26,6 +26,7 @@ Compiling:  fasm scc.asm SCC.PRG  (in Windows or Linux)
     (FASM, flat assembler is used to assemble SCC source code.)
 
 Using compiler: scc <cfile>
+
     (use scc without a file name -without an argument- to see options)
     
 SCC compiler output: ASM file (label numbers may need to be changed
