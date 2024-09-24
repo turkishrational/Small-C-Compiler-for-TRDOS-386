@@ -23,7 +23,7 @@ Major difference from other SCC adaptations/ports:
 
 Compiling:  fasm scc.asm SCC.PRG  (in Windows or Linux)
 
-           (FASM, flast asembler is used to assemble SCC source code.)
+    (FASM, flast assembler is used to assemble SCC source code.)
 
 Using compiler: scc <cfile>
     (use scc without a file name -without an argument- to see options)
