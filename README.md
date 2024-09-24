@@ -17,7 +17,7 @@
     file handles are set to -1 (not 0,1,2 as in other systems).
     This is a signature that directs code to SYSSTDIO system call
     (for putc, getc) instead of SYSREAD/SYSWRITE (fputc, fgetc) system calls.
-    (You can see it 'OSFUNC.ASM' file)
+    (You can see it in 'OSFUNC.ASM' file)
     SYSSTDIO system call can be used to redirect STDIN and STDOUT to a file.
     (But this is not a subject for SCC here.)
 
