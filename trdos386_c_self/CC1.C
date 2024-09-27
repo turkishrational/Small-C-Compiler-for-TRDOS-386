@@ -2,7 +2,7 @@
 * Small C Compiler for TRDOS 386 (v2.0.9 and later)
 * Erdogan Tan - 2024
 * Beginning: 05/09/2024
-* Last Update: 21/09/2024
+* Last Update: 25/09/2024
 * -----------------------------------------------------------
 * Derived from 'cc1.c' file of KolibriOS SCC source code
 * 2024
@@ -313,6 +313,7 @@ doinclude() {
   while(lptr[i]
      && lptr[i] != '"'
      && lptr[i] != '>'
+     && lptr[i] != 13 /* CR, TRDOS 386 modification */ 	
      && lptr[i] != '\n') {
     str[i] = lptr[i];
     ++i;

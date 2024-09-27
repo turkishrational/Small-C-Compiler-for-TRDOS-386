@@ -44,7 +44,10 @@ preprocess() {
     return;
     }
   pptr = -1;
-  while(ch != NEWLINE && ch) {
+  /* while(ch != NEWLINE && ch) { */
+  /* TRDOS 386 modification */
+  /* CR */	
+  while(ch != 13 && ch != NEWLINE && ch) {
     if(white()) {
       keepch(' ');
       while(white()) gch();
@@ -91,10 +94,13 @@ preprocess() {
 	  }
 	bump(2);
       }
-    else  if(ch == '/' && nch == '/')
+    else if(ch == '/' && nch == '/')
       {
 	bump(2);
-	while(ch != NEWLINE)
+	/* while(ch != NEWLINE) */
+	/* TRDOS 386 Modification */
+	/* CR */
+	while(ch != 13 && ch != NEWLINE)
 	  {
 	    if(ch)
 	      bump(1);
