@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 23/09/2024
+; Last Update: 24/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'cc4.asm' file of KolibriOS SCC source code
 ; 2024
@@ -2148,11 +2148,9 @@ CALL __eq
 OR   EAX,EAX
 JNZ  short _4_100 ; true (j = 0)
 _4_98:
-LEA  EBX,[EBP-8]
-MOV  EAX,[EBX]	; k value
-PUSH EAX
+LEA  EAX,[EBP-8]
+MOV  EBX,[EAX]	; k value
 MOV  EAX,[_litptr]
-POP  EBX
 CALL __ge
 OR   EAX,EAX
 JZ  short _4_95 ; false (k < litptr)

@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 23/09/2024
+; Last Update: 26/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'cc2.asm' file of KolibriOS SCC source code
 ; 2024
@@ -42,6 +42,12 @@ MOV DWORD [_pptr],EAX
 _2_7:
 MOV EAX,[_ch]
 MOV EBX,EAX
+;;;		; TRDOS 386 modification
+MOV  EAX,13	; CR
+CALL __ne
+OR   EAX,EAX
+JZ   short _2_9
+;;;
 MOV EAX,10
 CALL __ne
 OR EAX,EAX
@@ -404,6 +410,12 @@ ADD ESP,4
 _2_77:
 MOV EAX,[_ch]
 MOV EBX,EAX
+;;;		; TRDOS 386 modification
+MOV  EAX,13	; CR
+CALL __ne
+OR   EAX,EAX
+JZ   short _2_78
+;;;
 MOV EAX,10
 CALL __ne
 OR EAX,EAX
@@ -676,25 +688,25 @@ _2_1 DB 110,111,32,113,117,111,116,101,0,110
 
 _keepch:		; keepch(c)
 PUSH EBP
-MOV EBP,ESP
-MOV EBX,[_pptr]		; if(pptr < LINEMAX)
-MOV EAX,127
+MOV  EBP,ESP
+MOV  EBX,[_pptr]	; if(pptr < LINEMAX)
+MOV  EAX,127
 CALL __lt
-OR EAX,EAX
-JZ short _2_111 	; false
+OR   EAX,EAX
+JZ   short _2_111 	; false
 _2_112:			; pline[++pptr] = c;
-MOV EAX,[_pptr]
-INC EAX
-MOV DWORD [_pptr],EAX
-MOV EBX,[_pline]
-ADD EAX,EBX
+MOV  EAX,[_pptr]
+INC  EAX
+MOV  DWORD [_pptr],EAX
+MOV  EBX,[_pline]
+ADD  EAX,EBX
 PUSH EAX
-LEA EBX,[EBP+8] ; char c;
+LEA  EBX,[EBP+8] ; char c;
 MOVSX EAX,BYTE [EBX]
-POP EBX
-MOV [EBX],AL
+POP  EBX
+MOV  [EBX],AL
 _2_111:
-POP EBP
+POP  EBP
 RETN
 
 _ifline:
@@ -917,7 +929,7 @@ _inline:
 PUSH EBP
 MOV  EBP,ESP
 ADD  ESP,-8	; int k, unit;
-MOV  EBX,[_input] ; if(input == EOF) openfile();	
+MOV  EBX,[_input] ; if(input == EOF) openfile();
 MOV  EAX,-1
 CALL __eq
 OR   EAX,EAX
@@ -1049,93 +1061,85 @@ CALL _gch	; return gch();
 POP  EBP
 RETN
 
-_symname:
+_symname:	; symname(sname)
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-8
-XOR CL,CL
-CALL _blanks
-MOV EAX,[_ch]
+MOV  EBP,ESP
+ADD  ESP,-8	; int k;char c;
+XOR  CL,CL
+CALL _blanks	; blanks();
+MOV  EAX,[_ch]
 PUSH EAX
-MOV CL,1
-CALL _alpha
-ADD ESP,4
-OR EAX,EAX
-JE _2_176
-JMP _2_175
-_2_176:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],AL
-MOV ESP,EBP
-POP EBP
-RET
-_2_175:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],EAX
-_2_177:
-MOV EAX,[_ch]
+MOV  CL,1
+CALL _alpha	; if(alpha(ch) == 0)
+ADD  ESP,4
+OR   EAX,EAX
+JNZ  short _2_175 ; false
+_2_176:		; return (*sname = 0);
+LEA  EAX,[EBP+8]
+MOV  EBX,[EAX]
+XOR  EAX,EAX
+MOV  [EBX],AL
+;MOV ESP,EBP
+;POP EBP
+;RETN
+JMP  short _2_180 ; TRDOS 386 modification 
+_2_175:		; k = 0;
+LEA  EBX,[EBP-4]
+XOR  EAX,EAX
+MOV  [EBX],EAX
+_2_177:		; while(an(ch)) {
+MOV  EAX,[_ch]
 PUSH EAX
-MOV CL,1
-CALL _an
-ADD ESP,4
-OR EAX,EAX
-JNE _2_179
-JMP _2_178
+MOV  CL,1
+CALL _an	; an(ch)
+ADD  ESP,4
+OR   EAX,EAX
+JZ   short _2_178
 _2_179:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+8] 
+MOV  EAX,[EBX]	; sname[0] address
+;PUSH EAX
+LEA  EBX,[EBP-4]
+;MOV EAX,[EBX]
+;POP EBX
+ADD  EAX,[EBX]	; sname[k] address
 PUSH EAX
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-ADD EAX,EBX
-PUSH EAX
-XOR CL,CL
+XOR  CL,CL
 CALL _gch
-POP EBX
-MOV [EBX],AL
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,8
-CALL __lt
-OR EAX,EAX
-JNE _2_181
-JMP _2_180
+POP  EBX
+MOV  [EBX],AL	 ; sname[k] = gch();
+LEA  EAX,[EBP-4]
+MOV  EBX,[EAX]
+MOV  EAX,8
+CALL __lt	; if(k < NAMEMAX) ++k;
+OR   EAX,EAX
+;JZ  short _2_180
+JZ   short _2_177
 _2_181:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-INC EAX
-MOV [EBX],EAX
-_2_180:
-JMP _2_177
+LEA  EBX,[EBP-4] ; k address
+;MOV EAX,[EBX]
+;INC EAX
+;MOV [EBX],EAX
+INC  DWORD [EBX] ; ++k;
+;_2_180:
+JMP  short _2_177 ; jump to while(an(ch))
 _2_178:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-ADD EAX,EBX
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],AL
-MOV EAX,1
-MOV ESP,EBP
-POP EBP
-RET
+LEA  EAX,[EBP+8] ; sname[0] address
+MOV  EBX,[EAX]
+;PUSH EBX
+;LEA EBX,[EBP-4]
+;MOV EAX,[EBX]
+;POP EBX
+LEA  EAX,[EBP-4]		
+ADD  EBX,[EAX]	; sname[k] address
+XOR  EAX,EAX	; 0
+MOV  [EBX],AL	; sname[k] = 0;
+;MOV EAX,1
+INC  EAX
+_2_180:		; TRDOS 386 modification
+MOV  ESP,EBP
+POP  EBP
+RETN
 
 _need:
 PUSH EBP
@@ -1186,7 +1190,7 @@ POP  EBP
 RETN
 
 _2_185:
-SEMICOLON: DB ';',0 ; DB 59,0
+SEMICOLON: DB ";",0 ; DB 59,0
 err_nsc: DB "no semicolon",0
 
 _match:
@@ -1656,7 +1660,7 @@ ADD  ESP,-4		; int c;
 ;PUSH EAX
 LEA  EBX,[EBP-4]
 MOV  EAX,[_ch]		; if(c = ch)
-;POP  EBX
+;POP EBX
 MOV  [EBX],EAX
 OR   EAX,EAX
 JZ   short _2_253	; false
@@ -1807,7 +1811,7 @@ POP EBP
 RETN
 
 _2_274:
-;SEMICOLON: DB ';',0 ; DB 59,0
+;SEMICOLON: DB ";",0 ; DB 59,0
 
 _addsym:
 PUSH EBP
@@ -2700,28 +2704,28 @@ RETN
 
 _illname:
 PUSH EBP
-MOV EBP,ESP
-MOV EAX,err_ils	; _2_354+0
+MOV  EBP,ESP
+MOV  EAX,err_ils ; _2_354+0
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _error	; error("illegal symbol");
-ADD ESP,4
-XOR CL,CL
+ADD  ESP,4
+XOR  CL,CL
 CALL _skip	; skip();
-POP EBP
+POP  EBP
 RETN
 _2_354:
 err_ils: DB "illegal symbol",0
 
 _multidef:
 PUSH EBP
-MOV EBP,ESP
-MOV EAX,err_alrd ; _2_355+0
+MOV  EBP,ESP
+MOV  EAX,err_alrd ; _2_355+0
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _error	; error("already defined");
-ADD ESP,4
-POP EBP
+ADD  ESP,4
+POP  EBP
 RETN
 
 _2_355:
@@ -2729,13 +2733,13 @@ err_alrd: DB "already defined",0
 
 _needlval:
 PUSH EBP
-MOV EBP,ESP
-MOV EAX,err_mblv ; _2_356+0
+MOV  EBP,ESP
+MOV  EAX,err_mblv ; _2_356+0
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _error	; error("must be lvalue");
-ADD ESP,4
-POP EBP
+ADD  ESP,4
+POP  EBP
 RETN
 
 _2_356:
@@ -2743,16 +2747,16 @@ err_mblv: DB "must be lvalue",0
 
 _noiferr:
 PUSH EBP
-MOV EBP,ESP
-MOV EAX,err_nmif ; _2_357+0
+MOV  EBP,ESP
+MOV  EAX,err_nmif ; _2_357+0
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _error ; error("no matching #if...");
 ;ADD ESP,4
-POP EAX
-XOR EAX,EAX 	; errflag = 0;
-MOV DWORD [_errflag],EAX
-POP EBP
+POP  EAX
+XOR  EAX,EAX 	; errflag = 0;
+MOV  DWORD [_errflag],EAX
+POP  EBP
 RETN
 
 _2_357:
@@ -2762,140 +2766,140 @@ err_nmif: DB "no matching #if...",0
 
 _error:		; error(msg)
 PUSH EBP
-MOV EBP,ESP
-MOV EAX,[_errflag] ; if(errflag)
-OR EAX,EAX
-JZ short _2_359 ; false
+MOV  EBP,ESP
+MOV  EAX,[_errflag] ; if(errflag)
+OR   EAX,EAX
+JZ   short _2_359 ; false
 _2_360:		; return;
-POP EBP
+POP  EBP
 RETN
 _2_359:		; else
-MOV EAX,1	; errflag = 1;	
-MOV DWORD [_errflag],EAX
+MOV  EAX,1	; errflag = 1;	
+MOV  DWORD [_errflag],EAX
 _2_361:
-MOV EAX,[_line]	; lout(line, stderr);
+MOV  EAX,[_line] ; lout(line, stderr);
 PUSH EAX
-MOV EAX,-1	; write to STDERR/STDOUT (TRDOS 386)
+MOV  EAX,-1	; write to STDERR/STDOUT (TRDOS 386)
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _lout	; lout(line, -1);
-ADD ESP,8
-LEA EBX,[EBP+8]	; errout(msg, stderr);
-MOV EAX,[EBX]
+ADD  ESP,8
+LEA  EBX,[EBP+8] ; errout(msg, stderr);
+MOV  EAX,[EBX]
 PUSH EAX
-MOV EAX,-1	; write to STDERR/STDOUT (TRDOS 386)
+MOV  EAX,-1	; write to STDERR/STDOUT (TRDOS 386)
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _errout	; errout(msg, -1);	
-ADD ESP,8
+ADD  ESP,8
 MOVSX EAX,BYTE [_alarm] ; if(alarm)
-OR EAX,EAX
-JZ short _2_362 ;false
+OR   EAX,EAX
+JZ   short _2_362 ;false
 _2_363:
-MOV EAX,7
+MOV  EAX,7
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _OS_putc	; putc(7); (TRDOS 386)
 ;ADD ESP,4
-POP EAX
+POP  EAX
 _2_362:
 ;MOVSX EAX,BYTE [_pause]
-MOV AL,BYTE [_pause]
-OR EAX,EAX	; if(pause)
-JZ short _2_364	; false
+MOV  AL,BYTE [_pause]
+OR   EAX,EAX	; if(pause)
+JZ   short _2_364 ; false
 _2_365:		; true
 _2_366:		; while(fgetc(stderr) != NEWLINE);
-XOR CL,CL	
+XOR  CL,CL	
 CALL _OS_getc	; while(getc() != 13); (TRDOS 386)
 ;ADD ESP,4
 ;MOV EBX,EAX
 ;MOV EAX,10
-MOV EBX,13
+MOV  EBX,13	; TRDOS 386 Modification
 CALL __ne
-OR EAX,EAX
-JNZ short _2_366 ; jump to while(getc() != 13)
+OR   EAX,EAX
+JNZ  short _2_366 ; jump to while(getc() != 13)
 _2_367:
 _2_364:
-MOV EAX,[_listfp] ; if(listfp > 0)
-OR EAX,EAX
-;JNG short _2_369
-JZ short _2_369	; TRDOS 386
+MOV  EAX,[_listfp] ; if(listfp > 0)
+OR   EAX,EAX
+JNG  short _2_369
+;JZ  short _2_369 ; TRDOS 386
 _2_370:		; errout(msg, listfp);
-LEA EBX,[EBP+8]
-MOV EAX,[EBX]
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV EAX,[_listfp]
+MOV  EAX,[_listfp]
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _errout
-ADD ESP,8
+ADD  ESP,8
 _2_369:
-POP EBP
+POP  EBP
 RETN
 
 _errout: 	; errout(msg, fp)
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-4	; int k;
-LEA EAX,[EBP-4]
+MOV  EBP,ESP
+ADD  ESP,-4	; int k;
+LEA  EAX,[EBP-4]
 PUSH EAX
-MOV EAX,[_line]
-MOV EBX,2
-ADD EAX,EBX
-POP EBX
-MOV [EBX],EAX
+MOV  EAX,[_line]
+MOV  EBX,2
+ADD  EAX,EBX
+POP  EBX
+MOV  [EBX],EAX
 _2_372:
-LEA EAX,[EBP-4]	; while(k++ <= lptr)
-MOV EBX,[EAX]
-INC DWORD [EAX]
-MOV EAX,[_lptr]
+LEA  EAX,[EBP-4] ; while(k++ <= lptr)
+MOV  EBX,[EAX]
+INC  DWORD [EAX]
+MOV  EAX,[_lptr]
 CALL __ule
-OR EAX,EAX
-JZ short _2_373 ; false
+OR   EAX,EAX
+JZ   short _2_373 ; false
 _2_374:
-MOV EAX,32	; ' '
+MOV  EAX,32	; ' '
 PUSH EAX
-LEA EBX,[EBP+8] ; fp address
-MOV EAX,[EBX]	; fp
+LEA  EBX,[EBP+8] ; fp address
+MOV  EAX,[EBX]	; fp
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 ; (if fp = -1, _OS_fputc will be redirected to _OS_putc)
 ; (_OS_putc writes char to STDOUT/STDERR)
 CALL _OS_fputc
-ADD ESP,8
-JMP short _2_372
+ADD  ESP,8
+JMP  short _2_372
 _2_373:
-MOV EAX,fsbs	; _2_371+0 ; "/\" 	
+MOV  EAX,fsbs	; _2_371+0 ; "/\" 	
 PUSH EAX
-LEA EBX,[EBP+8]
-MOV EAX,[EBX]	; fp
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]	; fp
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _lout	; lout("/\\", fp);
-ADD ESP,8
-MOV EAX,fsas	; _2_371+3 ; "**** "
+ADD  ESP,8
+MOV  EAX,fsas	; _2_371+3 ; "**** "
 PUSH EAX
-LEA EBX,[EBP+8]
-MOV EAX,[EBX]
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
 ; (if fp = -1, _OS_fputc in _fputs 
 ;  will be redirected to _OS_putc -in OSFUNCS.ASM-)
 ; (_OS_putc writes char to STDOUT/STDERR)
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _fputs	; fputs("**** ", fp);
-ADD ESP,8
+ADD  ESP,8
 _2_377:		; TRDOS 386
-LEA EBX,[EBP+12] ; address of msg address
-MOV EAX,[EBX]	; msg address (message's itself)
+LEA  EBX,[EBP+12] ; address of msg address
+MOV  EAX,[EBX]	; msg address (message's itself)
 PUSH EAX
-LEA EBX,[EBP+8]	; fp address
-MOV EAX,[EBX]	; fp (file number)
+LEA  EBX,[EBP+8] ; fp address
+MOV  EAX,[EBX]	; fp (file number)
 PUSH EAX
-MOV CL,2
+MOV  CL,2
 CALL _lout	; lout(msg, fp);
-ADD ESP,8
-MOV ESP,EBP
-POP EBP
+ADD  ESP,8
+MOV  ESP,EBP
+POP  EBP
 RETN
 
 _2_371:

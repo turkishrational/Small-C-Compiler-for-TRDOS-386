@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 23/09/2024
+; Last Update: 26/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'libstd.asm' file of KolibriOS SCC source code
 ; 2024
@@ -491,19 +491,16 @@ MOV  ESP, EBP
 POP  EBP
 RETN
 
-_fgets:
+_fgets:			; fgets(str,size,fd)
 PUSH EBP
-MOV  EBP, ESP
-LEA  EAX, [EBP+16]
-MOV  EBX, EAX
+MOV  EBP, ESP		; return (_gets(str,size,fd,1));
+LEA  EBX, [EBP+16]
 MOV  EAX, [EBX]
 PUSH EAX
-LEA  EAX, [EBP+12]
-MOV  EBX, EAX
+LEA  EBX, [EBP+12]
 MOV  EAX, [EBX]
 PUSH EAX
-LEA  EAX, [EBP+8]
-MOV  EBX, EAX
+LEA  EBX, [EBP+8]
 MOV  EAX, [EBX]
 PUSH EAX
 MOV  EAX, 1
@@ -514,7 +511,7 @@ ADD  ESP, 16
 POP  EBP
 RETN
 
-_gets:
+_gets:			; gets(str)
 PUSH EBP
 MOV  EBP, ESP
 ADD  ESP, -12		; size,backup,*next
@@ -683,210 +680,145 @@ RETN
 
 _gets_14: DB 8,32,8,0	; "\b \b"
 
-__gets:
+__gets:			; _gets(str,size,fd,nl)
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-8
-LEA EAX,[EBP-8]
-PUSH EAX
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-MOV [EBX],EAX
-_lib_51:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
-DEC EAX
-MOV [EBX],EAX
-OR EAX,EAX
-JNE _lib_53
-JMP _lib_52
-_lib_53:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-MOV CL,1
-CALL _OS_fgetc
-ADD ESP,4
-POP EBX
-MOV [EBX],AL
-JMP _lib_56
-_lib_57:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],AL
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-CALL __eq
-OR EAX,EAX
-JNE _lib_59
-JMP _lib_58
-_lib_59:
-XOR EAX,EAX
-MOV ESP,EBP
-POP EBP
-RET
-_lib_58:
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV ESP,EBP
-POP EBP
-RET
-_lib_60:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-ADD EAX,EBX
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],EAX
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV ESP,EBP
-POP EBP
-RET
-_lib_61:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-CALL __ugt
-OR EAX,EAX
-JNE _lib_63
-JMP _lib_62
-_lib_63:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX,1
-MOV [EBX],EAX
-JMP _lib_64
-_lib_62:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],EAX
-_lib_64:
-JMP _lib_65
-_lib_66:
-LEA EAX,[EBP-4]
-PUSH EAX
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-XCHG EAX,EBX
-SUB EAX,EBX
-POP EBX
-MOV [EBX],EAX
-_lib_65:
-JMP _lib_67
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
-INC EAX
-MOV [EBX],EAX
-_lib_68:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-DEC EAX
-MOV [EBX],EAX
-INC EAX
-OR EAX,EAX
-JNE _lib_70
-JMP _lib_69
-_lib_70:
-MOV EAX,_lib_50+0
-PUSH EAX
-;MOV EAX,__iob
-;MOV EBX,64
-;ADD EAX,EBX
-MOV  EAX,-1 ; TRDOS 386 STDOUT/STDERR
-PUSH EAX
-MOV CL,2
-CALL _fputs
-ADD ESP,8
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-DEC EAX
-MOV [EBX],EAX
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
-INC EAX
-MOV [EBX],EAX
-JMP _lib_68
-_lib_69:
-JMP _lib_51
-_lib_67:
-_lib_71:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-INC EAX
-MOV [EBX],EAX
-JMP _lib_55
-_lib_56:
-CALL __switch
- DD _lib_57
- DD -1
- DD _lib_60
- DD 10
- DD _lib_61
- DD 8
- DD _lib_66
- DD 24
- DD 0
-JMP _lib_71
-_lib_55:
-JMP _lib_51
+MOV  EBP, ESP
+ADD  ESP, -8		; int backup; char *next;
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]
+LEA  EBX, [EBP-8]
+MOV  [EBX], EAX		; next=str;
+_lib_51:		; while(--size>0)
+LEA  EBX, [EBP+16]
+MOV  EAX, [EBX]
+DEC  EAX
+MOV  [EBX], EAX
+OR   EAX, EAX
+JNZ  short _lib_53
 _lib_52:
-LEA EAX,[EBP-8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-XOR EAX,EAX
-MOV [EBX],AL
-LEA EAX,[EBP+20]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV ESP,EBP
-POP EBP
-RET
-_lib_50 DB 8,32,8,0
-
+LEA  EAX, [EBP-8]
+MOV  EBX, [EAX]
+XOR  EAX, EAX		; 0
+MOV  [EBX], AL		; *next = NULL;
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]		; return (str);
+MOV  ESP, EBP
+POP  EBP
+RETN
+_lib_53:
+LEA  EBX, [EBP-8]
+MOV  EAX, [EBX]
+PUSH EAX		; next
+LEA  EBX, [EBP+12]	; fd
+MOV  EAX, [EBX]
+PUSH EAX
+MOV  CL,1
+CALL _OS_fgetc
+ADD  ESP, 4
+POP  EBX
+MOV  [EBX], AL		; *next=fgetc(fd)
+JMP  short _lib_56	; jump to {switch (*next=fgetc(fd)) 
+_lib_57:		; {case EOF:
+LEA  EAX, [EBP-8]
+MOV  EBX, [EAX]
+XOR  EAX, EAX
+MOV  [EBX], AL		; *next=NULL;
+;LEA EAX, [EBP-8]
+;MOV EBX, [EAX]
+PUSH EBX
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]
+POP  EBX
+CALL __eq		; if(next==str) return (NULL);
+OR   EAX, EAX
+JZ   short _lib_58
+;_lib_59:
+XOR  EAX, EAX		; return (NULL);
+;MOV ESP, EBP
+;POP EBP
+;RETN
+JMP  short _lib_59
+_lib_58:
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]		; return (str);
+_lib_59:
+MOV  ESP, EBP
+POP  EBP
+RETN
+_lib_60:		; case '\n':
+LEA  EBX, [EBP-8]
+MOV  EAX, [EBX]
+PUSH EAX
+LEA  EBX, [EBP+8]	; nl
+MOV  EAX, [EBX]
+POP  EBX
+ADD  EBX, EAX
+XOR  EAX, EAX		; 0
+MOV  [EBX], EAX		; *(next+nl)=NULL;
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]		; return (str);
+;MOV ESP, EBP
+;POP EBP
+;RETN
+JMP  short _lib_59
+_lib_61:		; case RUB:
+LEA  EBX, [EBP-8]
+MOV  EAX, [EBX]
+PUSH EAX
+LEA  EBX, [EBP+20]
+MOV  EAX, [EBX]		; str
+POP  EBX
+CALL __ugt		; if(next>str) backup=1;
+;OR  EAX, EAX
+;JZ  short _lib_62	; else
+;_lib_63:
+LEA  EBX, [EBP-4]
+;MOV EAX, 1
+;eax = 1
+;MOV [EBX], EAX
+;JMP short _lib_64
+;_lib_62:		; else backup=0;
+;LEA EBX,[EBP-4]
+;XOR EAX,EAX
+;eax = 0
+MOV  [EBX],EAX
+;_lib_64:
+JMP  short _lib_65	; goto backout;
+_lib_66:		; case WIPE: /* \r */
+LEA  EBX, [EBP-8]
+MOV  EAX, [EBX]
+PUSH EAX		; next
+LEA  EAX, [EBP+20]
+MOV  EBX, [EAX]		; str
+POP  EAX
+SUB  EAX, EBX		; next-str;
+LEA  EBX, [EBP-4]
+MOV  [EBX], EAX		; backup=next-str;
+_lib_64:
+_lib_65:
+			; backout: (if (0))
+_lib_67:		; continue;
+_lib_71:		; ++next;	
+LEA  EBX, [EBP-8]
+MOV  EAX, [EBX]
+INC  EAX
+MOV  [EBX], EAX
+;JMP _lib_55
+JMP  _lib_51
+_lib_56:		; {switch (*next=fgetc(fd)) 
+CALL __switch
+ DD  _lib_57		; {case EOF:
+ DD  -1
+ DD  _lib_60		; case '\n':
+ DD  10
+ DD  _lib_61		; case RUB:
+ DD  8
+ DD  _lib_66		; case WIPE: /* \r */
+ DD  24
+ DD  0
+JMP  short _lib_71 	; default: 
+;_lib_55:
+;JMP _lib_51
 
 _fprintf:
 PUSH EBP

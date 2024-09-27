@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 11/09/2024
+; Last Update: 26/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'intrins.asm' file of KolibriOS SCC source code
 ; 2024
@@ -20,7 +20,7 @@ _CCARGC:
 
   xor  eax,eax
   movzx eax,cl  ; No sign-extension
-  ret
+  retn
 ;E:.
 
 ;B+ Compare
@@ -28,81 +28,81 @@ _CCARGC:
 __ult:
 ;B+ ???
   cmp  eax,ebx
-  ja   true
+  ja   short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __ugt:
 ;B+ ???
   cmp  eax,ebx
-  jb   true
+  jb   short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __ule:
 ;B+ ???
   cmp  eax,ebx
-  jae  true
+  jae  short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __uge:
 ;B+ ???
   cmp  eax,ebx
-  jbe  true
+  jbe  short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __eq:
 ;B+ ???
   cmp  eax,ebx
-  je   true
+  je   short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __ne:
 ;B+ ???
   cmp  eax,ebx
-  jne  true
+  jne  short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __lt:
 ;B+ ???
   cmp  eax,ebx
-  jg   true
+  jg   short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __gt:
 ;B+ ???
   cmp  eax,ebx
-  jl   true
+  jl   short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __le:
 ;B+ ???
   cmp  eax,ebx
-  jge  true
+  jge  short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __ge:
 ;B+ ???
   cmp  eax,ebx
-  jle  true
+  jle  short true
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 ;E:.
@@ -110,14 +110,14 @@ __ge:
 __lneg:
 ;B+ Logical Negate of Primary
   or   eax,eax
-  jnz  false
+  jnz  short false
 true:
   mov  eax,1
-  ret
+  retn
 
 false:
   xor  eax,eax
-  ret
+  retn
 ;E:.
 
 __switch:
@@ -133,15 +133,15 @@ __switch:
  ;
  ; Revised: 20/Nov/98 [JECXZ needed]
 
- pop  ebx
-  jmp  skip
+  pop  ebx
+  jmp  short skip
 back:
   add  ebx,8        ;next case-pair
 skip:
   mov  ecx,[ebx]    ;case-label location (adress)
   jecxz default
   cmp  eax,[ebx+4]  ;test case-value
-  jnz  back
+  jnz  short back
   jmp  ecx          ;match -- jump to case
 default:
   add  ebx,4

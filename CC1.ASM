@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 23/09/2024
+; Last Update: 26/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'cc1.asm' file of KolibriOS SCC source code
 ; 2024
@@ -318,6 +318,7 @@ JZ   short _1_15
 _1_16:
 XOR  CL,CL
 CALL _doinclud	; doinclude();
+
 JMP  short _1_17
 _1_15:		; else if(match("#define"))
 MOV  EAX,_DEFINE_ ; _1_2+21
@@ -472,7 +473,7 @@ _declglb:	; declglb(type, class)
 PUSH EBP
 MOV  EBP,ESP
 ADD  ESP,-8	; int id, dim;
-_1_39:
+_1_39:		; while(1);	
 XOR  CL,CL
 CALL _endst	; if(endst())
 OR   EAX,EAX
@@ -688,7 +689,7 @@ MOV  CL,1
 CALL _match	; if(match(",") == 0)
 ADD  ESP,4
 OR   EAX,EAX
-JNZ  short _1_65 ; jump to while(1
+JNZ  short _1_65 ; jump to while(1)
 _1_66:		; return;
 MOV  ESP,EBP
 POP  EBP
@@ -703,359 +704,287 @@ _RPARN_: DB ")",0
 _LBRCK_: DB "[",0
 _COMMA_: DB ",",0
 
-_initials:
+_initials:	; initials(size, ident, dim)
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-4
-XOR EAX,EAX
-MOV DWORD [_litptr],EAX
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-OR EAX,EAX
-JE _1_69
-JMP _1_68
+MOV  EBP,ESP
+ADD  ESP,-4	; int savedim;
+XOR  EAX,EAX
+MOV  DWORD [_litptr],EAX ; litptr = 0;
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
+OR   EAX,EAX	; if(dim == 0) dim = -1;  
+JNZ  short _1_68
 _1_69:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX,-1
-MOV [EBX],EAX
+LEA  EBX,[EBP+8]
+MOV  EAX,-1
+MOV  [EBX],EAX	; dim = -1;
 _1_68:
-LEA EAX,[EBP-4]
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
+LEA  EBX,[EBP-4]
+MOV  [EBX],EAX	; savedim = dim;
+MOV  EAX,_EQUAL_ ; _1_67+0
 PUSH EAX
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-MOV [EBX],EAX
-MOV EAX,_1_67+0
-PUSH EAX
-MOV CL,1
-CALL _match
-ADD ESP,4
-OR EAX,EAX
-JNE _1_71
-JMP _1_70
+MOV  CL,1
+CALL _match	; if(match("=")) {
+ADD  ESP,4
+OR   EAX,EAX
+JZ   short _1_70
 _1_71:
-MOV EAX,_1_67+2
+MOV  EAX,_LBRACE_ ; _1_67+2
 PUSH EAX
-MOV CL,1
-CALL _match
-ADD ESP,4
-OR EAX,EAX
-JNE _1_73
-JMP _1_72
+MOV  CL,1
+CALL _match	; if(match("{")) {
+ADD  ESP,4
+OR   EAX,EAX
+JZ   short _1_72 ; else
 _1_73:
-_1_74:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-OR EAX,EAX
-JNE _1_76
-JMP _1_75
+_1_74:		 ; while(dim) {
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
+OR   EAX,EAX
+JZ   short _1_75
 _1_76:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+16]
+MOV  EAX,[EBX]
 PUSH EAX
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+12]
+MOV  EAX,[EBX]
 PUSH EAX
-LEA EAX,[EBP+8]
+LEA  EAX,[EBP+8]
 PUSH EAX
-MOV CL,3
+MOV  CL,3
+CALL _init	; init(size, ident, &dim);
+ADD  ESP,12
+;MOV EAX,_COMMA2 ; _1_67+4
+MOV  EAX,_COMMA_
+PUSH EAX
+MOV  CL,1
+CALL _match	; if(match(",") == 0) break;
+ADD  ESP,4
+OR   EAX,EAX
+JNZ  short _1_74 ; jump to while(dim)
+_1_75:		; break;
+MOV  EAX,_RBRACE_ ; _1_67+6
+PUSH EAX
+MOV  CL,1
+CALL _need	; need("}");
+ADD  ESP,4
+JMP  short _1_79
+_1_72:		; else init(size, ident, &dim);
+LEA  EBX,[EBP+16]
+MOV  EAX,[EBX]
+PUSH EAX
+LEA  EBX,[EBP+12]
+MOV  EAX,[EBX]
+PUSH EAX
+LEA  EAX,[EBP+8]
+PUSH EAX
+MOV  CL,3
 CALL _init
-ADD ESP,12
-MOV EAX,_1_67+4
-PUSH EAX
-MOV CL,1
-CALL _match
-ADD ESP,4
-OR EAX,EAX
-JE _1_78
-JMP _1_77
-_1_78:
-JMP _1_75
-_1_77:
-JMP _1_74
-_1_75:
-MOV EAX,_1_67+6
-PUSH EAX
-MOV CL,1
-CALL _need
-ADD ESP,4
-JMP _1_79
-_1_72:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-LEA EAX,[EBP+8]
-PUSH EAX
-MOV CL,3
-CALL _init
-ADD ESP,12
+ADD  ESP,12
 _1_79:
-_1_70:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,-1
+_1_70:		; if(savedim == -1 && dim == -1) {
+LEA  EAX,[EBP-4]
+MOV  EBX,[EAX]
+MOV  EAX,-1
 CALL __eq
-OR EAX,EAX
-JNE _1_83
-JMP _1_81
-_1_83:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,-1
+OR   EAX,EAX
+JZ   short _1_80
+_1_83:		
+LEA  EAX,[EBP+8]
+MOV  EBX,[EAX]
+MOV  EAX,-1
 CALL __eq
-OR EAX,EAX
-JNE _1_84
-JMP _1_81
-_1_84:
-MOV EAX,1
-JMP _1_82
-_1_81:
-XOR EAX,EAX
-_1_82:
-OR EAX,EAX
-JNE _1_85
-JMP _1_80
-_1_85:
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,2
+OR   EAX,EAX
+JZ   short _1_80
+_1_85:		; if(ident == ARRAY)
+LEA  EAX,[EBP+12]
+MOV  EBX,[EAX]	; ident
+MOV  EAX,2	; ARRAY	
 CALL __eq
-OR EAX,EAX
-JNE _1_87
-JMP _1_86
+OR   EAX,EAX
+JZ   short _1_86
 _1_87:
-MOV EAX,_1_67+8
+MOV  EAX,err_nas ; _1_67+8
 PUSH EAX
-MOV CL,1
-CALL _error
-ADD ESP,4
+MOV  CL,1
+CALL _error	; error("need array size");
+;ADD ESP,4
+POP  EAX
 _1_86:
-XOR EAX,EAX
+XOR  EAX,EAX
 PUSH EAX
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX,4
-MOV [EBX],EAX
+LEA  EBX,[EBP+16]
+MOV  EAX,4	; PTRSIZE
+MOV  [EBX],EAX	; size = PTRSIZE
 PUSH EAX
-MOV CL,2
-CALL _stowlit
-ADD ESP,8
+MOV  CL,2
+CALL _stowlit	; stowlit(0, size = PTRSIZE);
+ADD  ESP,8
 _1_80:
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+12]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV CL,1
-CALL _public
-ADD ESP,4
-MOV EAX,[_litptr]
-OR EAX,EAX
-JG _1_89
-JMP _1_88
-_1_89:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
+MOV  CL,1
+CALL _public	; public(ident);  ;;; FASM
+;ADD ESP,4
+POP  EAX
+MOV  EAX,[_litptr]
+OR   EAX,EAX	 ; if(litptr>0) dumplits(size);
+JNG  short _1_88 ; false
+_1_89:		; true
+LEA  EBX,[EBP+16]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV CL,1
-CALL _dumplits
-ADD ESP,4
-JMP _1_90
-_1_88:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-OR EAX,EAX
-JG _1_92
-JMP _1_91
-_1_92:
-MOV EAX,58
+MOV  CL,1
+CALL _dumplits	; dumplits(size);
+;ADD ESP,4
+POP  EAX
+JMP  short _1_90
+_1_88:		; else if(dim>0) 
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
+OR   EAX,EAX
+JNG  short _1_91 ; false
+_1_92:		; true
+     ; In FASM: "<variable>: TIMES <number> D<type> 0"	
+MOV  EAX,58
 PUSH EAX
-MOV EAX,[_output]
+MOV  EAX,[_output]
 PUSH EAX
-MOV CL,2
-CALL _OS_fputc
-ADD ESP,8
+MOV  CL,2
+CALL _OS_fputc	; fputc(':',output);
+ADD  ESP,8
 _1_91:
 _1_90:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+16]
+MOV  EAX,[EBX]
 PUSH EAX
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV CL,2
-CALL _dumpzero
-ADD ESP,8
-MOV ESP,EBP
-POP EBP
-RET
-_1_67 DB 61,0,123,0,44,0,125,0,110,101
- DB 101,100,32,97,114,114,97,121,32,115
- DB 105,122,101,0
+MOV  CL,2
+CALL _dumpzero	; dumpzero(size, dim); 
+ADD  ESP,8
+MOV  ESP,EBP
+POP  EBP
+RETN
 
-_init:
+_1_67:
+_EQUAL_: DB "=",0 ; DB 61,0
+_LBRACE_: DB "{",0 ; DB 123,0
+;_COMMA2: DB ",",0 ; DB 44,0
+_RBRACE_: DB "}",0 ; DB 125,0
+err_nas: DB "need array size",0
+
+_init:		; init(size, ident, dim)
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-4
-LEA EAX,[EBP-4]
+MOV  EBP,ESP
+ADD  ESP,-4	; int value;
+LEA  EAX,[EBP-4]
 PUSH EAX
-MOV CL,1
-CALL _string
-ADD ESP,4
-OR EAX,EAX
-JNE _1_95
-JMP _1_94
-_1_95:
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,1
+MOV  CL,1
+CALL _string	; if(string(&value)) {
+ADD  ESP,4
+OR   EAX,EAX
+JZ   short _1_94
+_1_95:		; if(ident == VARIABLE || size != 1)
+LEA  EAX,[EBP+12]
+MOV  EBX,[EAX]
+MOV  EAX,1
 CALL __eq
-OR EAX,EAX
-JE _1_99
-JMP _1_97
+OR   EAX,EAX
+JNZ  short _1_101 ; ident == VARIABLE
 _1_99:
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,1
+LEA  EAX,[EBP+16]
+MOV  EBX,[EAX]
+MOV  EAX,1
 CALL __ne
-OR EAX,EAX
-JE _1_100
-JMP _1_97
-_1_100:
-XOR EAX,EAX
-JMP _1_98
-_1_97:
-MOV EAX,1
-_1_98:
-OR EAX,EAX
-JNE _1_101
-JMP _1_96
-_1_101:
-MOV EAX,_1_93+0
+OR   EAX,EAX
+JZ   short _1_96 ; size = 1	
+_1_101:		; ident == VARIABLE || size != 1
+; error("must assign to char pointer or char array");
+MOV  EAX,err_matcp ; _1_93+0
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _error
-ADD ESP,4
+;ADD ESP,4
+POP  EAX
 _1_96:
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-MOV EAX,[_litptr]
-PUSH EAX
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
-POP EBX
-XCHG EAX,EBX
-SUB EAX,EBX
-POP EBX
-XCHG EAX,EBX
-SUB EAX,EBX
-POP EBX
-MOV [EBX],EAX
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,3
+LEA  EAX,[EBP+8]
+MOV  EBX,[EAX]
+PUSH EBX	; DIM (address)
+MOV  EAX,[EBX]
+PUSH EAX	; *DIM (value)	
+LEA  EBX,[EBP-4]
+MOV  EAX,[EBX]	; value
+MOV  EBX,[_litptr]
+SUB  EBX,EAX	; litptr - value
+POP  EAX	; *DIM (value)
+SUB  EAX,EBX	; 
+POP  EBX	; DIM (address)
+MOV  [EBX],EAX	; *dim -= (litptr - value);
+LEA  EAX,[EBP+12] ; if(ident == POINTER) point();
+MOV  EBX,[EAX]
+MOV  EAX,3	; POINTER
 CALL __eq
-OR EAX,EAX
-JNE _1_103
-JMP _1_102
-_1_103:
-XOR CL,CL
-CALL _point
+OR   EAX,EAX
+JZ   short _1_104
+_1_103:		; ident == POINTER
+XOR  CL,CL
+CALL _point	; point();
 _1_102:
-JMP _1_104
-_1_94:
-LEA EAX,[EBP-4]
+JMP  short _1_104
+_1_94:		; else if(constexpr(&value)) {
+LEA  EAX,[EBP-4]
 PUSH EAX
-MOV CL,1
+MOV  CL,1
 CALL _constexp
-ADD ESP,4
-OR EAX,EAX
-JNE _1_106
-JMP _1_105
-_1_106:
-LEA EAX,[EBP+12]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,3
+ADD  ESP,4
+OR   EAX,EAX
+JZ   short _1_105 ; false
+_1_106:		; if(ident == POINTER)
+LEA  EAX,[EBP+12]
+MOV  EBX,[EAX]
+MOV  EAX,3
 CALL __eq
-OR EAX,EAX
-JNE _1_108
-JMP _1_107
+OR   EAX,EAX
+JZ   short _1_107
 _1_108:
-MOV EAX,_1_93+42
+MOV  EAX,err_cnatp ; _1_93+42
 PUSH EAX
-MOV CL,1
-CALL _error
-ADD ESP,4
+MOV  CL,1
+CALL _error	; error("cannot assign to pointer");
+;ADD ESP,4
+POP  EAX
 _1_107:
-LEA EAX,[EBP-4]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP-4]
+MOV  EAX,[EBX]
 PUSH EAX
-LEA EAX,[EBP+16]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP+16]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV CL,2
-CALL _stowlit
-ADD ESP,8
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-PUSH EAX
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV EBX,EAX
-MOV EAX,1
-XCHG EAX,EBX
-SUB EAX,EBX
-POP EBX
-MOV [EBX],EAX
+MOV  CL,2
+CALL _stowlit	; stowlit(value, size);
+ADD  ESP,8
+LEA  EAX,[EBP+8]
+MOV  EBX,[EAX]
+MOV  EAX,[EBX]
+;;MOV EBX,1
+;;SUB EAX,EBX
+;SUB EAX,1
+DEC  EAX
+MOV  [EBX],EAX ; *dim -= 1;
 _1_105:
 _1_104:
-MOV ESP,EBP
-POP EBP
-RET
-_1_93 DB 109,117,115,116,32,97,115,115,105,103
- DB 110,32,116,111,32,99,104,97,114,32
- DB 112,111,105,110,116,101,114,32,111,114
- DB 32,99,104,97,114,32,97,114,114,97
- DB 121,0,99,97,110,110,111,116,32,97
- DB 115,115,105,103,110,32,116,111,32,112
- DB 111,105,110,116,101,114,0
+MOV  ESP,EBP
+POP  EBP
+RETN
+
+_1_93:
+err_matcp: DB "must assign to char pointer or char array",0
+err_cnatp: DB "cannot assign to pointer",0
 
 _needsub:
 PUSH EBP
@@ -1117,7 +1046,7 @@ POP  EBP
 RETN
 
 _1_109:
-_RBRCK_: DB ']',0 ; DB 93,0
+_RBRCK_: DB "]",0 ; DB 93,0
 errnsi:	 DB "negative size illegal",0
 
 _doinclud:
@@ -1195,10 +1124,17 @@ _1_129:		; && lptr[i] != '\n') {
 ;;ADD EAX,EBX
 ;ADD EAX,[_lptr]
 ;MOVSX EBX,BYTE [EAX]
+;;;
+;MOV EAX,10	; LF ; '\n'
+MOV  EAX,13	; CR ; TRDOS 386 Modification
+CALL __ne
+OR   EAX,EAX
+JZ   short _1_124
 MOV  EAX,10	; LF ; '\n'
 CALL __ne
 OR   EAX,EAX
 JZ   short _1_124
+;;;
 _1_131:		; str[i] = lptr[i];
 ;LEA EAX,[EBP-36]
 ;PUSH EAX
@@ -1262,7 +1198,7 @@ POP  EBP
 RETN
 
 _1_116:
-iopr:	 DB 'r',0
+iopr:	 DB "r",0
 iopfail: DB "open failure on include file",0
 
 _dodefine:	; dodefine() {
@@ -1279,11 +1215,12 @@ JNZ  short _1_135 ; false
 _1_136:		; true
 XOR  CL,CL
 CALL _illname	; illname();
-XOR  CL,CL
-CALL _kill	; kill();
-MOV  ESP,EBP	; return;
-POP  EBP
-RETN
+;XOR  CL,CL
+;CALL _kill	; kill();
+;MOV  ESP,EBP	; return;
+;POP  EBP
+;RETN
+JMP   short _1_132 ; TRDOS 386
 _1_135:
 LEA  EBX,[EBP-4] ; k = 0;
 XOR  EAX,EAX
@@ -1291,15 +1228,15 @@ MOV  [EBX],EAX
 ; if(search(msname,macn,NAMESIZE+2,MACNEND,MACNBR,0) == 0) {
 MOV  EAX,_msname
 PUSH EAX
-MOV  EAX,[_macn]
-PUSH EAX
+MOV  EBX,[_macn]
+PUSH EBX
 MOV  EAX,11	; NAMESIZE+2
 PUSH EAX
-MOV  EAX,[_macn]
-;MOV EBX,3300	; MACNSIZE = MACNBR*(NAMESIZE+2))
-;ADD EAX,EBX	; MACNEND = macn+MACNSIZE
-ADD  EAX,3300
-PUSH EAX
+;MOV EBX,[_macn]
+;MOV EAX,3300	; MACNSIZE = MACNBR*(NAMESIZE+2))
+;ADD EBX,EAX	; MACNEND = macn+MACNSIZE
+ADD  EBX,3300
+PUSH EBX
 MOV  EAX,300	; MACNBR
 PUSH EAX
 XOR  EAX,EAX	; 0
@@ -1320,6 +1257,7 @@ PUSH EAX
 MOV  CL,1
 CALL _error	; error("macro name table full");
 ;ADD ESP,4
+POP  EAX
 MOV  ESP,EBP	; return;
 POP  EBP
 RETN
@@ -1341,7 +1279,7 @@ MOV  EBX,[EAX]
 INC  DWORD [EAX] ; k++
 ;POP EAX
 ;ADD EBX,EAX
-ADD  EBX, _msname
+ADD  EBX,_msname
 MOVSX EAX,BYTE [EBX]
 POP  EBX	; *cptr2
 MOV  [EBX],AL	; *cptr2 = msname[k++]
@@ -1352,8 +1290,9 @@ _1_137:	; putint(macptr, cptr+NAMESIZE, 2 /*INTSIZE*/);
 MOV  EAX,[_macptr]
 PUSH EAX
 MOV  EAX,[_cptr]
-MOV  EBX,9	; NAMESIZE
-ADD  EAX,EBX
+;MOV EBX,9	; NAMESIZE
+;ADD EAX,EBX
+ADD  EAX,9
 PUSH EAX
 MOV  EAX,2
 PUSH EAX
@@ -1397,6 +1336,7 @@ PUSH EAX
 MOV  CL,1
 CALL _OS_exit	; exit(ERRCODE); 
 ;ADD ESP,4
+POP  EAX	; TRDOS 386 (cpu must not come here)
 _1_151:
 MOV  ESP,EBP
 POP  EBP
@@ -1557,8 +1497,8 @@ CALL _public		; public(FUNCTION);
 POP  EAX
 XOR  EAX,EAX
 MOV  DWORD [_argstk],EAX ; argstk = 0; 	
-MOV  EAX,_LPAREN ; _1_156+37 
-;MOV EAX,_LPARN_	; if(match("(") == 0)
+;MOV EAX,_LPAREN ; _1_156+37 
+MOV  EAX,_LPARN_	; if(match("(") == 0)
 PUSH EAX
 MOV  CL,1
 CALL _match
@@ -1574,8 +1514,8 @@ CALL _error		; error("no open paren");
 POP  EAX
 _1_169:
 _1_171:			; while(match(")") == 0) {
-MOV  EAX,_RPAREN ; _1_156+53
-;MOV EAX,_RPARN_
+;MOV EAX,_RPAREN ; _1_156+53
+MOV  EAX,_RPARN_
 PUSH EAX
 MOV  CL,1
 CALL _match
@@ -1645,8 +1585,8 @@ XOR  CL,CL
 CALL _blanks		; blanks();
 MOV  EAX,[_lptr]
 PUSH EAX
-MOV  EAX,_RPAREN ; _1_156+77
-;MOV EAX,_RPARN_
+;MOV EAX,_RPAREN ; _1_156+77
+MOV  EAX,_RPARN_
 PUSH EAX
 MOV  CL,2
 CALL _streq		; if(streq(lptr,")") == 0
@@ -1658,8 +1598,8 @@ CALL __eq
 OR   EAX,EAX
 JZ   short _1_180	; false
 _1_183:
-MOV  EAX,_COMMA ; _1_156+79
-;MOV EAX,_COMMA_
+;MOV EAX,_COMMA ; _1_156+79
+MOV  EAX,_COMMA_
 PUSH EAX
 MOV  CL,1
 CALL _match		; && match(",") == 0)
@@ -1697,8 +1637,8 @@ OR   EAX,EAX
 JNZ  short _1_190	; true
 JMP  _1_189		; false
 _1_190:			; if (amatch("char",4))
-MOV  EAX,_CHAR ; _1_156+90
-;MOV EAX,_CHAR_
+;MOV EAX,_CHAR ; _1_156+90
+MOV  EAX,_CHAR_
 PUSH EAX
 MOV  EAX,4
 PUSH EAX
@@ -1717,8 +1657,8 @@ XOR  CL,CL
 CALL _ns
 JMP  short _1_188	; jump to while(argstk)
 _1_191:			; else if(amatch("int",3))
-MOV  EAX,_INT ; _1_156+95
-;MOV EAX,_INT_
+;MOV EAX,_INT ; _1_156+95
+MOV  EAX,_INT_
 PUSH EAX
 MOV  EAX,3
 PUSH EAX
@@ -1737,8 +1677,8 @@ XOR  CL,CL
 CALL _ns
 JMP  short _1_188	; jump to while(argstk)
 _1_194:			; else if(amatch("unsigned", 8))
-MOV  EAX,_UNSIGNED ; _1_156+99
-;MOV EAX,_UNSGND_
+;MOV EAX,_UNSIGNED ; _1_156+99
+MOV  EAX,_UNSGND_
 PUSH EAX
 MOV  EAX,8
 PUSH EAX
@@ -1748,8 +1688,8 @@ ADD  ESP,8
 OR   EAX,EAX
 JZ   short _1_197	; false/else	
 _1_198:			; if (amatch("char", 4))
-MOV  EAX,_CHAR2 ; _1_156+108
-;MOV EAX,_CHAR_
+;MOV EAX,_CHAR2 ; _1_156+108
+MOV  EAX,_CHAR_
 PUSH EAX
 MOV  EAX,4
 PUSH EAX
@@ -1768,8 +1708,8 @@ XOR  CL,CL
 CALL _ns
 JMP short _1_202	; jump to while(argstk)
 _1_199:			; else {amatch("int", 3);
-MOV  EAX,_INT2 ; _1_156+113
-;MOV EAX,_INT_
+;MOV EAX,_INT2 ; _1_156+113
+MOV  EAX,_INT_
 PUSH EAX
 MOV  EAX,3
 PUSH EAX
@@ -1857,18 +1797,18 @@ RETN
 _1_156:
 _void_: DB "void",0
 err_ifd: DB "illegal function or declaration",0
-_LPAREN: DB "(",0 ; DB 40,0
+;_LPAREN: DB "(",0 ; DB 40,0
 err_nop: DB "no open paren",0
-_RPAREN: DB ")",0
+;_RPAREN: DB ")",0
 err_ian: DB "illegal argument name",0
-_RPAREN2: DB ')',0 ; DB 41,0'
-_COMMA: DB ',',0 ; DB 44,0
+;_RPAREN2: DB ")",0 ; DB 41,0'
+;_COMMA: DB ",",0 ; DB 44,0
 err_nc: DB "no comma",0
-_CHAR: DB "char",0
-_INT: DB "int",0
-_UNSIGNED: DB "unsigned",0
-_CHAR2: DB "char",0
-_INT2: DB "int",0
+;_CHAR: DB "char",0
+;_INT: DB "int",0
+;_UNSIGNED: DB "unsigned",0
+;_CHAR2: DB "char",0
+;_INT2: DB "int",0
 err_wnoa: DB "wrong number of arguments",0
 
 _doargs:
@@ -4192,62 +4132,57 @@ RETN
 _1_439:
 _endasm_: DB "#endasm",0
 
-_doexpr:
+_doexpr:	; doexpr(use) int use; {
 PUSH EBP
-MOV EBP,ESP
-ADD ESP,-16
-LEA EAX,[EBP+8]
-MOV EBX,EAX
-MOV EAX, [EBX]
-MOV DWORD [_usexpr],EAX
-_1_447:
-LEA EAX,[EBP-12]
+MOV  EBP,ESP
+ADD  ESP,-16	; int constant, val;
+		; int *before, *start;
+LEA  EBX,[EBP+8]
+MOV  EAX,[EBX]
+MOV  DWORD [_usexpr],EAX ; usexpr = use;
+_1_447:		; while(1) {
+LEA  EAX,[EBP-12]
 PUSH EAX
-LEA EAX,[EBP-16]
+LEA  EAX,[EBP-16]
 PUSH EAX
-MOV CL,2
-CALL _setstage
-ADD ESP,8
-LEA EAX,[EBP-4]
+MOV  CL,2
+CALL _setstage	; setstage(&before, &start);
+ADD  ESP,8
+LEA  EAX,[EBP-4]
 PUSH EAX
-LEA EAX,[EBP-8]
+LEA  EAX,[EBP-8]
 PUSH EAX
-MOV CL,2
-CALL _expressi
-ADD ESP,8
-LEA EAX,[EBP-12]
-MOV EBX,EAX
-MOV EAX, [EBX]
+MOV  CL,2
+CALL _expressi	; expression(&constant, &val);
+ADD  ESP,8
+LEA  EBX,[EBP-12]
+MOV  EAX,[EBX]
 PUSH EAX
-LEA EAX,[EBP-16]
-MOV EBX,EAX
-MOV EAX, [EBX]
+LEA  EBX,[EBP-16]
+MOV  EAX,[EBX]
 PUSH EAX
-MOV CL,2
-CALL _clearsta
-ADD ESP,8
-MOV EAX,[_ch]
-MOV EBX,EAX
-MOV EAX,44
-CALL __ne
-OR EAX,EAX
-JNE _1_450
-JMP _1_449
-_1_450:
-JMP _1_448
+MOV  CL,2
+CALL _clearsta	; clearstage(before, start);
+ADD  ESP,8
+MOV  EBX,[_ch]
+MOV  EAX,44
+CALL __ne	; if(ch != ',') break;
+OR   EAX,EAX
+JNZ  short _1_448
 _1_449:
-MOV EAX,1
+MOV  EAX,1
 PUSH EAX
-MOV CL,1
-CALL _bump
-ADD ESP,4
-JMP _1_447
-_1_448:
-MOV EAX,1
-MOV DWORD [_usexpr],EAX
-MOV ESP,EBP
-POP EBP
-RET
+MOV  CL,1
+CALL _bump	; bump(1);
+;ADD ESP,4
+POP  EAX
+JMP  short _1_447 ; jump to while
+_1_448:		; break;
+MOV  EAX,1
+MOV  DWORD [_usexpr],EAX ; usexpr = YES;
+MOV  ESP,EBP
+POP  EBP
+RETN
 
 _ask:
 PUSH EBP
@@ -4751,7 +4686,7 @@ _1_505:
 LEA  EBX,[EBP-24] ; j
 MOV  EAX,[EBX]
 LEA  EBX,[EBP-16] ; outfn
-ADD  EAX,EBX	 ; outfn + j
+ADD  EAX,EBX	; outfn + j
 PUSH EAX
 MOV  EAX,EXT_ASM ; ".ASM" extension
 PUSH EAX
@@ -4809,21 +4744,21 @@ _mustopen:
 	; mustopen(fn, mode) char *fn, *mode; {
 PUSH EBP
 MOV  EBP,ESP
-ADD  ESP,-4 ; int fd;
+;*ADD ESP,-4 ; int fd; ; TRDOS 386
 ;LEA EAX,[EBP-4]
 ;PUSH EAX
 LEA  EBX,[EBP+12] ; file name
 MOV  EAX,[EBX]
 PUSH EAX	; fn
-LEA  EBX,[EBP+8]	; open mode
+LEA  EBX,[EBP+8] ; open mode
 MOV  EAX,[EBX]
 PUSH EAX	; mode
 MOV  CL,2
 CALL _OS_fopen
 ADD  ESP,8
 ;POP EBX
-LEA  EBX,[EBP-4] ; fd = fopen(fn, mode)
-MOV  [EBX],EAX	; file handle + 1 (for TRDOS 386)
+;*LEA EBX,[EBP-4] ; fd = fopen(fn, mode)
+;*MOV [EBX],EAX ; file handle + 1 (for TRDOS 386)
 OR   EAX,EAX
 JZ  short _1_510 ; error (file not found or access err)
 _1_511:
