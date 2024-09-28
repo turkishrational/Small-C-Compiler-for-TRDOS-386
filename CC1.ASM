@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 26/09/2024
+; Last Update: 29/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'cc1.asm' file of KolibriOS SCC source code
 ; 2024
@@ -70,6 +70,7 @@ _cptr2 DD 0
 _cptr3 DD 0
 _msname: TIMES 9 DB 0
 _ssname: TIMES 9 DB 0
+
 _op DD 57,73,3,20,55,43,22,47,35,7
  DD 6,1,69,52,16,49
 _op2 DD 57,73,3,20,55,44,23,48,36,7
@@ -318,7 +319,6 @@ JZ   short _1_15
 _1_16:
 XOR  CL,CL
 CALL _doinclud	; doinclude();
-
 JMP  short _1_17
 _1_15:		; else if(match("#define"))
 MOV  EAX,_DEFINE_ ; _1_2+21
@@ -4188,12 +4188,12 @@ _ask:
 PUSH EBP
 MOV EBP,ESP
 ADD ESP,-8
-LEA EAX,[EBP-4]
-PUSH EAX	; int i
+LEA EBX,[EBP-4]
+;PUSH EAX	; int i
 XOR EAX,EAX
 MOV DWORD [_nxtlab],EAX
 MOV DWORD [_listfp],EAX
-POP EBX
+;POP EBX
 MOV [EBX],EAX	; i = listfp = nxtlab = 0;
 XOR EAX,EAX
 MOV BYTE [_optimize],AL ; optimize = NO;
@@ -4649,7 +4649,7 @@ MOV  EBX,[_pline] ; pline[0]
 ADD  EBX,EAX	; pline[i];
 MOVSX EAX,BYTE [EBX]
 POP  EBX
-MOV [EBX],AL	; outfn[j++] = pline[i];
+MOV  [EBX],AL	; outfn[j++] = pline[i];
 _1_500:
 JMP  short _1_495 ; jump to while(pline[++i])
 _1_496:	; if(!ext) strcpy(pline + i, ".C");

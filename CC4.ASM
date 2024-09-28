@@ -2,7 +2,7 @@
 ; Small C Compiler for TRDOS 386 (v2.0.9 and later)
 ; Erdogan Tan - 2024
 ; Beginning: 05/09/2024
-; Last Update: 24/09/2024
+; Last Update: 29/09/2024
 ; -----------------------------------------------------------
 ; Derived from 'cc4.asm' file of KolibriOS SCC source code
 ; 2024
@@ -3307,31 +3307,32 @@ MOV CL,1
 CALL _offset
 ADD ESP,4
 JMP _4_216
-_4_223:
-MOV EAX,[_litlab]
+_4_223:		; case 'l':
+MOV  EAX,[_litlab]
 PUSH EAX
-MOV CL,1
-CALL _outdec
-ADD ESP,4
-JMP _4_216
-_4_224:
-LEA EAX,[EBP-28]
+MOV  CL,1
+CALL _outdec	; outdec(litlab);
+;ADD ESP,4
+POP  EAX
+JMP  short _4_216
+_4_224:		; case 'g':
+LEA  EAX,[EBP-28]
 PUSH EAX
-XOR CL,CL
-CALL _getlabel
-POP EBX
-MOV [EBX],EAX
-JMP _4_216
-_4_225:
-LEA EAX,[EBP-28]
-MOV EBX,EAX
-MOV EAX, [EBX]
+XOR  CL,CL
+CALL _getlabel	; getlabel()
+POP  EBX
+MOV  [EBX],EAX	; loc_label = getlabel ();
+JMP  short _4_216
+_4_225:		; case 'd':
+LEA  EAX,[EBP-28]
+MOV  EBX,EAX
+MOV  EAX, [EBX]
 PUSH EAX
-MOV CL,1
-CALL _outdec
-ADD ESP,4
-JMP _4_216
-JMP _4_216
+MOV  CL,1
+CALL _outdec	; outdec(loc_label);
+;ADD ESP,4
+POP  EAX
+JMP short _4_216 ; break;
 _4_217:
 CALL __switch
  DD _4_218
@@ -3344,7 +3345,7 @@ CALL __switch
  DD 108
  DD _4_224
  DD 103
- DD _4_225
+ DD _4_225	; case 'd':
  DD 100
  DD 0
 _4_216:
@@ -3577,7 +3578,7 @@ MOV ESP,EBP
 POP EBP
 RET
 _4_201 DB 66,89,84,69,32,0
-   
+
 _outdec:
 PUSH EBP
 MOV EBP,ESP

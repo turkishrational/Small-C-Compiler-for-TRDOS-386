@@ -1,1 +1,1 @@
-fasm helloscc.asm
+fasm helloscc.asm HELLOSCC.PRG
