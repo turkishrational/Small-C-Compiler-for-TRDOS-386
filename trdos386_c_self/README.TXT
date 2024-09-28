@@ -2,8 +2,8 @@
 using the compiler itself (self-compilation)***
 
 Required systems:
-1) TRDOS 386 Floppy or Disk to run on real computer or emulator
-2) Windows or Linux operating system to generate SCC.PRG using FASM compiler.
+1) TRDOS 386 Floppy or Disk to run on real computer or emulator.
+2) Windows or Linux OS to generate SCC.PRG using FASM assembler.
    (Because ASM outputs are in FASM syntax)   
 
 Compile the following (TRDOS 386 compatible) C files
@@ -30,11 +30,9 @@ INTRINS.ASM
 
 Later...
 
-to use
+use
 
-> FASM SCC.ASM to create SCC.BIN
-
-and finally rename SCC.BIN to SCC.PRG.
+> FASM SCC.ASM SCC.PRG to create SCC program.
 
 Erdogan Tan - 24/09/2024
 
