@@ -2,7 +2,7 @@
 * Small C Compiler for TRDOS 386 (v2.0.9 and later)
 * Erdogan Tan - 2024
 * Beginning: 05/09/2024
-* Last Update: 23/09/2024
+* Last Update: 28/09/2024
 * -----------------------------------------------------------
 * Derived from 'libstd.c' file of KolibriOS SCC source code
 * 2024
@@ -27,8 +27,9 @@
 */
 puts(string) char *string;
 {while(*string)
-     OS_putc(*string++);
- OS_putc('\n');
+ {if (*string=='\n') OS_putc(13); /* CRLF */
+  OS_putc(*string++);
+ }
 }
 
 /* TRDOS 386 v2 modification */
@@ -159,23 +160,28 @@ fgets(str,size,fd) char *str; unsigned size,fd;
 ** Entry: str = Pointer to destination buffer.
 ** Returns str on success, else NULL.
 ** (Modified for TRDOS 386 v2.)
+** (stdin = -1)
 */
 gets(str) char *str;
-{unsigned size; int backup; char *next;
- size=32767;
+{return (_gets(str,32767,stdin,0));
+}
+
+_gets(str,size,fd,nl) char *str; unsigned size,fd,nl;
+{int backup; char *next;
+
  next=str;
  while(--size>0)
- {switch (*next=OS_getc())
+ {switch (*next=fgetc(fd)) 
   {case  EOF:
     *next=NULL;
     if(next==str) return (NULL);
     return (str);
 
    case '\n':
-    *next=NULL;
+    *(next+nl)=NULL;
     return (str);
 
-   case RUB: /* \b */
+   case  RUB: /* \b */
     if(next>str) backup=1;
     else         backup=0;
     goto backout;
@@ -183,17 +189,16 @@ gets(str) char *str;
    case WIPE: /* \r */
     backup=next-str;
 backout: 
-    /* if(0/*iscons(fd)*//*) */ /* TRDOS 386 Modification */
-    if(1)
+    if(0/*iscons(fd)*/) 
     {++size;
-     while(backup--)
-     {puts("\b \b");
+     while(backup--) 
+     {fputs("\b \b",stderr);
       --next;++size;
      }
      continue;
     }
 
-   default:
+   default: 
     ++next;
   }
  }

@@ -2,7 +2,7 @@
 * Small C Compiler for TRDOS 386 (v2.0.9 and later)
 * Erdogan Tan - 2024
 * Beginning: 05/09/2024
-* Last Update: 23/09/2024
+* Last Update: 29/09/2024
 * -----------------------------------------------------------
 * Derived from 'cc4.c' file of KolibriOS SCC source code
 * 2024
@@ -873,7 +873,7 @@ int pcode, value;
 		    loc_label = getlabel ();
 		    break;
 		  case 'd':	/* dump local label */
-		    outdec(loc_label);
+                    outdec(loc_label);
 		    break;
 		}
 	      cp += 2;                   /* skip past > */

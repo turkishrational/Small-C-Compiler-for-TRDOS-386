@@ -2,7 +2,7 @@
 * Small C Compiler for TRDOS 386 (v2.0.9 and later)
 * Erdogan Tan - 2024
 * Beginning: 05/09/2024
-* Last Update: 25/09/2024
+* Last Update: 29/09/2024
 * -----------------------------------------------------------
 * Derived from 'cc1.c' file of KolibriOS SCC source code
 * 2024
@@ -86,7 +86,7 @@ char
  *cptr2,
  *cptr3,
   msname[NAMESIZE],  /* macro symbol name */
-  ssname[NAMESIZE];  /* static symbol name */
+  ssname[NAMESIZE]; /* static symbol name */
 
 int op[16] = {   /* p-codes of signed binary operators */
   OR12,                        /* level5 */
@@ -807,7 +807,7 @@ ask()
     int j;
     i = listfp = nxtlab = 0;
     /* output = stdout; */
-    output = -1 ; TRDOS 386 modification 
+    output = -1; /* TRDOS 386 modification */ 
 #ifdef LATER
     optimize = YES;	// Not working for 32 bit int's yer
 #else
@@ -894,7 +894,7 @@ openfile() {        /* entire function revised */
         break;
         }
       if(j < 10) outfn[j++] = pline[i];
-      }
+     }
     if(!ext) strcpy(pline + i, ".C");
     input = mustopen(pline, "r");
 #ifdef _MSC_VER
@@ -917,7 +917,7 @@ openfile() {        /* entire function revised */
   if(files++) eof = YES;
   /* TRDOS 386 modification */
   /* else input = stdin; */
-  else input = -1	
+  else input = -1;	
   kill();
   }
 

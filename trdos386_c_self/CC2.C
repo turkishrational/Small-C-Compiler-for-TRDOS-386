@@ -2,7 +2,7 @@
 * Small C Compiler for TRDOS 386 (v2.0.9 and later)
 * Erdogan Tan - 2024
 * Beginning: 05/09/2024
-* Last Update: 15/09/2024
+* Last Update: 28/09/2024
 * -----------------------------------------------------------
 * Derived from 'cc2.c' file of KolibriOS SCC source code
 * 2024
@@ -525,6 +525,7 @@ lout(line, fd) char *line; int fd; {
  if (fd != -1) {
     fputs(line, fd);
     fputc(NEWLINE, fd);
+    }
  else {
     puts(line);
     putc(13);
